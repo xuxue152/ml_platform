@@ -1,0 +1,6 @@
+USE homework;
+SHOW COLUMNS FROM users;
+SHOW COLUMNS FROM Datasets;
+SHOW COLUMNS FROM Experiments;
+SHOW COLUMNS FROM Models;
+SHOW COLUMNS FROM Predictions;
