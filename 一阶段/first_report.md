@@ -11,8 +11,8 @@
 
 ## 二. 数据库表与关系结构设计
 ### E-R图
-![E-R图](https://raw.githubusercontent.com/xuxue152/Project1/e130c623221dae6f32a5f98b2c1782d1d3907ac0/E-R.png "数据库E-R图")
 
+<img src="./E-R.png" width="200" height="350"><br>
 ### 表格1 - Users
 | 字段名 | 类型 | 说明 | 约束                                   |
 |--------|------|------|--------------------------------------|
