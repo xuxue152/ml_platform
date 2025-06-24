@@ -294,10 +294,16 @@ const handleLogin = async () => {
   loadingLogin.value = true;
   try {
     const res = await axios.post("http://localhost:8000/api/login", loginData.value);
+    const { role, email } = res.data;
+    localStorage.setItem('email', email);
     loginMessage.value = "登录成功！";
     loginError.value = false;
     triggerFlash("login");
-    window.location.href = '/admin';
+    if (role == 'admin'){
+      window.location.href = '/admin';}
+    else {
+      window.location.reload();
+    }
   } catch (err) {
     if (err.response?.status === 404) {
       loginMessage.value = "用户不存在，请注册新账户";

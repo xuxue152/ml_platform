@@ -3,7 +3,7 @@
     <!-- 左侧导航栏 -->
     <div class="sidebar">
       <div class="sidebar-header">
-        <h2>实验室管理系统</h2>
+        <h2>管理系统</h2>
       </div>
       <nav class="sidebar-nav">
         <router-link
@@ -59,19 +59,22 @@ export default {
 <style scoped>
 .admin-system {
   display: flex;
-  min-height: 100vh;
-  background-color: #f8f9fa;
+  min-height: 200vh;
   margin: 0; /* 移除默认外边距 */
   padding: 0; /* 移除默认内边距 */
 }
 
 .sidebar {
+  position: fixed;
+  top: 4em;
+  left: 0;
+  height: 100vh; /* 撑满整个视口高度 */
   width: 250px;
   background-color: #2d3748;
   color: white;
   padding: 1.5rem 0;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  margin-left: 0; /* 确保左侧无间距 */
+  z-index: 1000;
 }
 
 .sidebar-header {
@@ -123,11 +126,11 @@ export default {
 }
 
 .main-content {
-  flex: 1;
-  padding: 2rem; /* 可根据需要调整内部间距 */
+  margin-left: 250px; /* 留出 sidebar 宽度 */
+  padding: 2rem;
   overflow-y: auto;
-  margin: 0; /* 移除外边距 */
-  max-width: calc(100vw - 250px); /* 确保不超过视口宽度减去侧边栏宽度 */
+  flex: 1;
 }
+
 
 </style>

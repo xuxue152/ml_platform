@@ -13,7 +13,7 @@ class Users(SQLModel, table=True):
     user_id: Optional[int] = Field(
         default=None,
         primary_key=True,
-        sa_column_kwargs={"name": "user_id"}  # 明确指定列名
+        # sa_column_kwargs={"name": "user_id"}  # 明确指定列名
     )
     email: str = Field(index=True, unique=True)
     password: str
@@ -33,7 +33,10 @@ class Login:
         if not self.user.password == db_user.password:
             raise HTTPException(status_code=401, detail="密码不正确")
 
-        return {"message": "Login successful", "user_id": db_user.user_id}
+        return {
+            "email": db_user.email,
+            "role": db_user.role
+        }
 
 class Register:
     def __init__(self, user, session):
@@ -58,3 +61,28 @@ class Register:
         self.session.refresh(new_user)
 
         return {"message": "User created", "user_id": new_user.user_id}
+
+class UpdateUser:
+    def __init__(self, session):
+        self.session = session
+
+    def update_user(self, user_id: int, new_email: str, new_password: str):
+        db_user = self.session.exec(select(Users).where(Users.user_id == user_id)).first()
+        if not db_user:
+            raise HTTPException(status_code=404, detail="用户不存在")
+
+        # 检查新的邮箱是否被其他用户使用
+        if db_user.email != new_email:
+            email_check = self.session.exec(select(Users).where(Users.email == new_email)).first()
+            if email_check:
+                raise HTTPException(status_code=400, detail="新的邮箱已被使用")
+
+        # 更新信息
+        db_user.email = new_email
+        db_user.password = new_password  # 实际使用中建议进行哈希加密
+        self.session.add(db_user)
+        self.session.commit()
+        self.session.refresh(db_user)
+
+        return {"message": "用户信息已更新", "user_id": db_user.user_id}
+
