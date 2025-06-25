@@ -1,6 +1,6 @@
 # manager.py
 
-from sqlmodel import SQLModel, create_engine, Session, Field, text
+from sqlmodel import SQLModel, create_engine, Session, Field, text,select
 from typing import Optional
 from fastapi import HTTPException
 from datetime import date
@@ -8,14 +8,7 @@ from account import Users
 
 DATABASE_URL = "mysql+pymysql://root:135790Ab@127.0.0.1:3306/homework"
 engine = create_engine(DATABASE_URL)
-#
-# class Users(SQLModel, table=True):
-#     user_id: Optional[int] = Field(default=None, primary_key=True, sa_column_kwargs={"name": "user_id"})
-#     email: str = Field(index=True, unique=True)
-#     password: str
-#     role: str = "user"
-#     registered_at: Optional[datetime] = None
-#     extend_existing = True
+
 
 class Experiments(SQLModel, table=True):
     __tablename__ = "experiments"
@@ -35,6 +28,10 @@ class All_Users:
         # Using the admin_user_view instead of direct table query
         result = self.session.exec(text("SELECT * FROM admin_user_view"))
         return result.all()
+
+    def get_user(self,user_id:int):
+        db_user = self.session.exec(select(Users).where(Users.user_id == user_id)).first()
+        return db_user
 
     def delete_user(self, user_id: int):
         # Using the stored procedure instead of direct deletion

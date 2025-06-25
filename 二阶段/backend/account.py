@@ -34,6 +34,7 @@ class Login:
             raise HTTPException(status_code=401, detail="密码不正确")
 
         return {
+            "user_id": db_user.user_id,
             "email": db_user.email,
             "role": db_user.role
         }
@@ -79,7 +80,7 @@ class UpdateUser:
 
         # 更新信息
         db_user.email = new_email
-        db_user.password = new_password  # 实际使用中建议进行哈希加密
+        db_user.password = new_password
         self.session.add(db_user)
         self.session.commit()
         self.session.refresh(db_user)

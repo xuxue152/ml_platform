@@ -294,7 +294,8 @@ const handleLogin = async () => {
   loadingLogin.value = true;
   try {
     const res = await axios.post("http://localhost:8000/api/login", loginData.value);
-    const { role, email } = res.data;
+    const {user_id, role, email } = res.data;
+    localStorage.setItem('user_id', user_id);
     localStorage.setItem('email', email);
     loginMessage.value = "登录成功！";
     loginError.value = false;
@@ -302,7 +303,7 @@ const handleLogin = async () => {
     if (role == 'admin'){
       window.location.href = '/admin';}
     else {
-      window.location.reload();
+      window.location.href = '/user';
     }
   } catch (err) {
     if (err.response?.status === 404) {

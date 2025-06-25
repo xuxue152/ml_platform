@@ -35,6 +35,7 @@
               <th>ID</th>
               <th>邮箱</th>
               <th>角色</th>
+              <th>注册时间</th>
               <th>操作</th>
             </tr>
           </thead>
@@ -47,6 +48,7 @@
                   {{ user.role }}
                 </span>
               </td>
+              <td>{{ user.registered_at }}</td>
               <td class="actions">
                 <button
                   v-if="user.role !== 'admin'"
@@ -80,7 +82,7 @@ const loading = ref(true)
 const fetchUsers = async () => {
   try {
     loading.value = true
-    const response = await axios.post('http://localhost:8000/api/all_users')
+    const response = await axios.get('http://localhost:8000/api/all_users')
     users.value = response.data
   } catch (error) {
     console.error('获取用户数据失败:', error)

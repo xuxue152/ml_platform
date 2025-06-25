@@ -74,7 +74,7 @@ const loading = ref(true)
 const fetchExperiments = async () => {
   try {
     loading.value = true
-    const response = await axios.post('http://localhost:8000/api/all_experiments')
+    const response = await axios.get('http://localhost:8000/api/all_experiments')
     experiments.value = response.data
   } catch (error) {
     console.error('获取实验数据失败:', error)
