@@ -1,0 +1,7 @@
+use homework;
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS predictions;
+DROP TABLE IF EXISTS experiments;
+DROP TABLE IF EXISTS datasets;
+DROP TABLE IF EXISTS models;
+DROP TABLE IF EXISTS projects;
