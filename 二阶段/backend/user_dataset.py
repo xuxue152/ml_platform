@@ -5,9 +5,8 @@ from sklearn.preprocessing import (StandardScaler, MinMaxScaler, RobustScaler,
 from sklearn.feature_selection import SelectKBest, f_classif, mutual_info_classif
 from sklearn.decomposition import PCA
 from typing import Union, List, Dict,Optional
-from sqlmodel import select, SQLModel, Field,Session
-import logging
-from functools import wraps
+from sqlmodel import select, SQLModel, Field,Session,Column,JSON
+import math
 from fastapi import HTTPException
 from datetime import datetime
 from sqlalchemy import text
@@ -17,6 +16,7 @@ class Datasets(SQLModel, table=True):
     user_id: int
     file_path: str
     uploaded_at: Optional[datetime] = None
+    measures: Optional[Dict] = Field(default=None, sa_column=Column(JSON))
 
 class All_Datasets:
     def __init__(self, session: Session):
@@ -63,9 +63,11 @@ class All_Datasets:
     def change(self, data):
         return DatasetService(self.session).change_dataset(data)
 
+
 class DatasetService:
     def __init__(self, session):
         self.session = session
+
 
     def change_dataset(self, data):
         existing = self.session.exec(
@@ -74,31 +76,28 @@ class DatasetService:
                 Datasets.user_id == data.user_id
             )
         ).first()
-
         if not existing:
             raise HTTPException(status_code=404, detail="数据集不存在")
-
         df = pd.read_csv(existing.file_path)
         processor = FeatureProcessor(df)
-
         try:
             processor.apply_pipeline(data.measures)  # measures 是 List[Dict] 类型，形如: [{operation: ..., args: [...], kwargs: {...}}]
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"特征处理失败: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))  # 返回错误详情
 
-        new_path = existing.file_path.replace(".csv", "_processed.csv")
-        processor.save(new_path)
 
-        existing.file_path = new_path
+        processor.save(existing.file_path)
         existing.measures = data.measures
+
         self.session.commit()
 
-        return {
+        result = {
             "message": "数据集处理并更新成功",
             "name": data.name,
-            "new_file_path": new_path,
+            "file_path": existing.file_path,
             "measures": data.measures
         }
+        return result
 
 class FeatureProcessor:
     def __init__(self, df: pd.DataFrame):
@@ -108,6 +107,7 @@ class FeatureProcessor:
         self.onehot_encoders = {}
         self.scalers = {}
         self.feature_selectors = {}
+
 
         # 操作名称到方法的映射
         self.operations_map = {

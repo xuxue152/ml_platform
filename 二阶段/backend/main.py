@@ -10,9 +10,9 @@ from user_experiment import All_Experiments
 from user_dataset import All_Datasets
 from user_prediction import All_Predictions
 from sqlalchemy import JSON
-from typing import Dict
+from typing import Dict,List
 import os
-
+from fastapi.responses import ORJSONResponse
 app = FastAPI()
 
 # 允许跨域
@@ -156,8 +156,7 @@ class DatasetCreate(BaseModel):
 class DatasetChange(BaseModel):
     name: str
     user_id: int
-    file_path: str
-    measures: Dict = Field(default=None, sa_column=Column(JSON))
+    measures: List[Dict] = Field(default=None)
 
 @app.post("/api/projects/{project_name}/datasets")
 async def get_all_datasets(
@@ -167,17 +166,17 @@ async def get_all_datasets(
 ):
     return All_Datasets(session).get_all(data.user_id)
 
-@app.post("/api/{project_name}/datasets/{dataset_name}/show_dataset")
+@app.post("/api/datasets/{dataset_name}/show_dataset",response_class=ORJSONResponse)
 async def show_dataset(
     data: DatasetCreate,
-    project_name: str = Path(...),
     dataset_name: str = Path(...),
     session: Session = Depends(get_session)
 ):
     return All_Datasets(session).show_dataset(data)
 
-@app.post("/api/projects/{project_name}/alter_dataset")
-async def get_all_datasets(data: DatasetChange,session: Session = Depends(get_session)):
+@app.post("/api/datasets/{dataset_name}/alter_dataset",response_class=ORJSONResponse)
+async def alter_datasets(data: DatasetChange,dataset_name: str = Path(...),
+                           session: Session = Depends(get_session)):
     return All_Datasets(session).change(data)
 
 @app.post("/api/projects/{project_name}/create_dataset")
