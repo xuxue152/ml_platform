@@ -13,12 +13,27 @@ DELIMITER ;
 
 -- 删除实验及其关联预测
 DELIMITER //
-CREATE PROCEDURE user_delete_experiment(IN p_experiment_id int)
+CREATE PROCEDURE user_delete_experiment(
+    IN p_experiment_id INT
+)
 BEGIN
     -- 删除该实验关联的预测
     DELETE FROM predictions WHERE experiment_id = p_experiment_id;
+
     -- 删除该实验本身
-    DELETE FROM experiments WHERE name = p_experiment_id;
+    DELETE FROM experiments WHERE experiment_id = p_experiment_id;
+END //
+DELIMITER ;
+
+
+-- 返回所有项目
+DELIMITER //
+create
+    definer = root@localhost procedure get_all_projects()
+BEGIN
+    SELECT name ,user_id, created_at,
+    (SELECT COUNT(*) FROM experiments WHERE project_name = name) AS prediction_count
+    FROM projects;
 END //
 DELIMITER ;
 
@@ -44,13 +59,14 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE get_dataset_path(
     IN p_dataset_name VARCHAR(100),
+    IN p_user_id INT,
     OUT p_file_path VARCHAR(255)
 )
 BEGIN
     SELECT file_path
     INTO p_file_path
     FROM datasets
-    WHERE name = p_dataset_name;
+    WHERE name = p_dataset_name AND user_id = p_user_id;
 END //
 DELIMITER ;
 
@@ -60,7 +76,7 @@ create
     definer = root@localhost procedure get_user_projects(IN p_user_id int)
 BEGIN
     SELECT
-        name AS project_name,
+        name,
         created_at
     FROM
         projects
@@ -81,7 +97,7 @@ BEGIN
     FROM
         experiments e,projects p
     WHERE
-        e.user_id = p_user_id AND p.name=p_project_name;
+        e.user_id = p_user_id AND e.project_name=p_project_name;
 END //
 DELIMITER ;
 
@@ -91,8 +107,9 @@ create
     definer = root@localhost procedure get_user_projects(IN p_user_id int)
 BEGIN
     SELECT
-        name AS project_name,
-        created_at
+        name,
+        created_at,
+    (SELECT COUNT(*) FROM experiments WHERE project_name = name) AS prediction_count
     FROM
         projects
     WHERE
@@ -121,7 +138,7 @@ DELIMITER //
 CREATE DEFINER = root@localhost PROCEDURE get_all_models()
 BEGIN
     SELECT
-        name AS model_name,
+        name,
         model_type,
         parameters
     FROM

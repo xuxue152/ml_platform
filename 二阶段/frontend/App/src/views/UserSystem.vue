@@ -1,4 +1,5 @@
 <template>
+
   <div class="admin-system">
     <!-- 左侧导航栏 -->
     <div class="sidebar">
@@ -7,37 +8,34 @@
       </div>
       <nav class="sidebar-nav">
         <router-link
-          to="/admin/users"
+          :to="`/projects/${project.name}/experiments`"
           class="nav-item"
-          :class="{ active: $route.path === '/admin/users' }"
-        >
+          :class="{ active: $route.path === `/projects/${project.name}/experiments` }">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
             <circle cx="9" cy="7" r="4"></circle>
             <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
           </svg>
-          用户管理
+          实验管理
         </router-link>
         <router-link
-          to="/admin/projects"
+          :to="`/projects/${project.name}/datasets`"
           class="nav-item"
-          :class="{ active: $route.path === '/admin/projects' }"
-        >
+          :class="{ active: $route.path === `/projects/${project.name}/datasets` }">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19.21 15.98A7 7 0 0 0 8.14 6.23M6 10H2M6 6H2M6 14H2M6 18H2M18 4a2 2 0 0 0-2-2h-1a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2z"></path>
           </svg>
-          项目管理
+          数据集管理
         </router-link>
         <router-link
-          to="/admin/models"
+          :to="`/projects/${project.name}/models`"
           class="nav-item"
-          :class="{ active: $route.path === '/admin/models' }"
-        >
+          :class="{ active: $route.path === `/projects/${project.name}/models` }">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19.21 15.98A7 7 0 0 0 8.14 6.23M6 10H2M6 6H2M6 14H2M6 18H2M18 4a2 2 0 0 0-2-2h-1a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2z"></path>
           </svg>
-          模型管理
+          模型库
         </router-link>
         <router-link
           to="/"
@@ -62,7 +60,13 @@
 
 <script>
 export default {
-  name: 'AdminSystem'
+  name: 'UserSystem',
+  props: ['name'],
+  computed: {
+    project() {
+      return { name: this.name }
+    }
+  }
 }
 </script>
 

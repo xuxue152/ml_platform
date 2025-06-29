@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- 数据集表
 CREATE TABLE IF NOT EXISTS datasets (
-    user_id INT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE ,
+    name VARCHAR(100) PRIMARY KEY,
+    user_id INT NOT NULL,
     file_path VARCHAR(255) NOT NULL,
     uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS models (
     name VARCHAR(100) PRIMARY KEY,
     model_type VARCHAR(50) NOT NULL,
     parameters JSON,
-    CHECK (model_type IN ('machine', 'deep'))
+    CHECK (model_type IN ('classify', 'regression'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 实验表
@@ -44,10 +44,12 @@ CREATE TABLE IF NOT EXISTS predictions (
     model_name VARCHAR(100) NOT NULL,
     dataset_name VARCHAR(100) NOT NULL,
     parameters JSON,
+    user_id INT,
     status VARCHAR(20) NOT NULL,
     metrics JSON,
     predicted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (experiment_id) REFERENCES experiments(experiment_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (model_name) REFERENCES models(name) ON DELETE CASCADE,
     CHECK (status IN ('completed', 'training', 'failed', 'pending'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -57,5 +59,4 @@ CREATE TABLE IF NOT EXISTS projects(
     user_id INT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
+)ENGINE=InnoDB DEFAULT CHARSET = utf8mb4;

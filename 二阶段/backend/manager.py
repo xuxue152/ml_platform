@@ -1,24 +1,13 @@
 # manager.py
-
-from sqlmodel import SQLModel, create_engine, Session, Field, text,select
-from typing import Optional
+from sqlmodel import create_engine, Session ,text,select,SQLModel,JSON,Column,Field
 from fastapi import HTTPException
-from datetime import date
+from sqlalchemy import CheckConstraint
 from account import Users
+from typing import Dict
+from models_map import model_name_map
 
 DATABASE_URL = "mysql+pymysql://root:135790Ab@127.0.0.1:3306/homework"
 engine = create_engine(DATABASE_URL)
-
-
-class Experiments(SQLModel, table=True):
-    __tablename__ = "experiments"
-    experiment_id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="users.user_id")
-    name: str
-    date: date
-    status: str
-    parameters: Optional[str] = None
-    result: Optional[str] = None
 
 class All_Users:
     def __init__(self, session: Session):
@@ -34,7 +23,6 @@ class All_Users:
         return db_user
 
     def delete_user(self, user_id: int):
-        # Using the stored procedure instead of direct deletion
         self.session.exec(text(f"CALL admin_delete_user({user_id})"))
         self.session.commit()
         return {"message": f"User {user_id} deleted successfully"}
@@ -48,25 +36,32 @@ class All_Users:
         self.session.commit()
         return {"message": f"User {user_id} promoted to admin"}
 
+class Models(SQLModel, table=True):
+    __table_args__ = (
+        CheckConstraint("model_type IN ('classify', 'regression')", name="model_type_check"),
+    )
 
-class All_Experiments:
+    name: str = Field(primary_key=True, max_length=100)
+    model_type: str = Field(nullable=False, max_length=50)
+    parameters: Dict = Field(default=None, sa_column=Column(JSON))
+
+class All_Models:
     def __init__(self, session: Session):
         self.session = session
 
-    def get_experiments(self):
-        # Using the admin_experiment_view instead of direct table query
-        result = self.session.exec(text("SELECT * FROM admin_experiment_view"))
-        return result.all()
+    def get_models(self):
+        result = self.session.exec(text("CALL get_all_models()")).all()
 
-    def delete_experiment(self, experiment_id: int):
-        exp = self.session.get(Experiments, experiment_id)
-        if not exp:
-            raise HTTPException(status_code=404, detail="Experiment not found")
-        self.session.delete(exp)
+        # 每条记录加上对应的中文名
+        models_with_chinese = []
+        for row in result:
+            model_dict = dict(row._mapping)  # SQLAlchemy Row -> dict
+            name = model_dict.get("name")
+            model_dict["chinese_name"] = model_name_map.get(name, f"未知模型（{name}）")
+            models_with_chinese.append(model_dict)
+        return models_with_chinese
+
+    def delete_model(self, model_name: str):
+        self.session.connection().execute(text("CALL admin_delete_model(:model_name)"),{"model_name": model_name})
         self.session.commit()
-        return {"message": f"Experiment {experiment_id} deleted successfully"}
-
-    def get_experiment_stats(self):
-        # Using the user_experiment_stats view
-        result = self.session.exec(text("SELECT * FROM user_experiment_stats"))
-        return result.all()
+        return {"message": f"Model '{model_name}' deleted successfully"}

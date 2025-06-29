@@ -53,7 +53,6 @@ class Register:
         existing_user = self.session.exec(select(Users).where(Users.email == self.user.email)).first() # 检查用户是否已存在
         if existing_user:
             raise HTTPException(status_code=400, detail="账户已经存在")
-
         hashed_password = self.user.password
         new_user = Users(email=self.user.email, password=hashed_password,user_id=self.generate_id()) #创建新用户
 

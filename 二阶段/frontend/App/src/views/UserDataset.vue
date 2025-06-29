@@ -1,8 +1,21 @@
 <template>
   <div class="management-container">
     <div class="management-header">
-      <h2>实验管理</h2>
-      <button @click="fetchExperiments" class="refresh-btn">
+      <h2>个人数据集管理</h2>
+
+      <!-- 上传按钮 -->
+      <button @click="triggerFileSelect" class="refresh-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        上传数据集
+        <input type="file" ref="fileInput" @change="handleFileChange" style="display: none" />
+      </button>
+
+      <!-- 刷新按钮 -->
+      <button @click="fetchDatasets" class="refresh-btn">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="23 4 23 10 17 10"></polyline>
           <polyline points="1 20 1 14 7 14"></polyline>
@@ -12,100 +25,135 @@
       </button>
     </div>
 
+    <!-- 加载中状态 -->
     <div class="card-container">
       <div v-if="loading" class="loading-state">
         <div class="spinner"></div>
         <p>加载中...</p>
       </div>
 
-      <div v-else-if="experiments.length === 0" class="empty-state">
+      <!-- 空状态 -->
+      <div v-else-if="datasets.length === 0" class="empty-state">
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19.21 15.98A7 7 0 0 0 8.14 6.23M6 10H2M6 6H2M6 14H2M6 18H2M18 4a2 2 0 0 0-2-2h-1a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2z"></path>
         </svg>
-        <p>暂无实验数据</p>
+        <p>暂无数据集数据</p>
       </div>
 
+      <!-- 表格内容 -->
       <div v-else class="table-responsive">
         <table class="data-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>实验名称</th>
-              <th>创建者</th>
-              <th>创建时间</th>
-              <th>状态</th>
+              <th>数据集名称</th>
+              <th>上传时间</th>
+              <th>保存路径</th>
               <th>操作</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="exp in experiments" :key="exp.id">
-              <td>{{ exp.id }}</td>
+            <tr v-for="exp in datasets" :key="exp.name">
               <td>{{ exp.name }}</td>
-              <td>{{ exp.creator }}</td>
-              <td>{{ formatDate(exp.created_at) }}</td>
-              <td>
-                <span :class="['status-badge', exp.status]">
-                  {{ exp.status }}
-                </span>
-              </td>
+              <td>{{ formatDate(exp.uploaded_at) }}</td>
+              <td>{{ exp.file_path }}</td>
               <td class="actions">
-                <button
-                  @click="deleteExperiment(exp.id)"
-                  class="action-btn delete"
+                <router-link
+                  :to="`/datasets/${exp.name}`"
                 >
-                  删除
-                </button>
+                  查看
+                </router-link>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
+
+
   </div>
+
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { useRoute } from 'vue-router'
 
-const experiments = ref([])
+const route = useRoute()
+const projectName = route.params.name
+const datasets = ref([])
 const loading = ref(true)
+const fileInput = ref(null)
 
-const fetchExperiments = async () => {
+const userId = parseInt(localStorage.getItem('user_id'))  // 注意 key 的一致性
+
+const triggerFileSelect = () => {
+  fileInput.value.click()
+}
+
+const handleFileChange = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const datasetName = file.name.split('.')[0]
+  const formData = new FormData()
+  formData.append('name', datasetName)
+  formData.append('user_id', userId)
+  formData.append('file', file)
+
+  try {
+    const response = await axios.post(
+      `http://localhost:8000/api/projects/${projectName}/create_dataset`,
+      formData
+    )
+    alert(response.data.message || '上传成功')
+    fetchDatasets()
+  } catch (err) {
+    console.error(err.response?.data || err.message)
+    alert('上传失败')
+  }
+}
+
+const fetchDatasets = async () => {
   try {
     loading.value = true
-    const response = await axios.get('http://localhost:8000/api/all_experiments')
-    experiments.value = response.data
+    const response = await axios.post(`http://localhost:8000/api/projects/${projectName}/datasets`, {
+      user_id: userId
+    })
+    datasets.value = response.data
   } catch (error) {
-    console.error('获取实验数据失败:', error)
+    console.error(error.response?.data || error.message)
+    alert('获取数据集失败')
   } finally {
     loading.value = false
   }
 }
 
-const deleteExperiment = async (experimentId) => {
-  if (!confirm('确定要删除此实验吗？')) return
-
-  try {
-    await axios.delete('http://localhost:8000/api/manager_experiments', {
-      data: { experiment_id: experimentId }
-    })
-    await fetchExperiments()
-  } catch (error) {
-    console.error('删除实验失败:', error)
-  }
+const formatDate = (dateStr) => {
+  const date = new Date(dateStr)
+  return date.toLocaleString()
 }
 
-const formatDate = (dateString) => {
-  const options = { year: 'numeric', month: 'short', day: 'numeric' }
-  return new Date(dateString).toLocaleDateString(undefined, options)
-}
-
-onMounted(fetchExperiments)
+onMounted(fetchDatasets)
 </script>
 
+
 <style scoped>
-/* 保持之前的样式不变 */
+.role-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: #f0fff4; /* 淡绿色背景 */
+  color: #38a169;            /* 深绿色字体 */
+}
+
+.role-badge.classify {
+  background-color: #ebf8ff;
+  color: #3182ce;
+}
+
 .management-container {
   background-color: white;
   border-radius: 12px;

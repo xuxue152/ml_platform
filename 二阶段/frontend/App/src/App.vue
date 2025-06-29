@@ -189,7 +189,7 @@ const handleUpdate = async () => {
 .user-panel-overlay {
   position: fixed;
   top: 4em;
-  left: 250px;
+  left: 0px;
   background-color: rgba(0, 0, 0, 0.4);
   width: 100vw;
   height: 100vh;
@@ -204,8 +204,8 @@ const handleUpdate = async () => {
   font-size: 1.6rem;
   background-color: var(--card-bg);
   padding: 1.5rem;
-  margin-top: 1rem;
-  margin-left: 18rem;
+  margin-top: 5rem;
+  margin-left: 33rem;
   width: 400px;
   border-radius: 12px;
   color: white;

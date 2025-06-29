@@ -17,7 +17,6 @@
 | 字段名 | 类型 | 说明 | 约束                                   |
 |--------|------|------|--------------------------------------|
 | user_id | INT（主键） | 用户ID，自增 | PRIMARY KEY, AUTO_INCREMENT, NOT NULL |
-| username | VARCHAR(50) | 用户名 | NOT NULL                             |
 | password | VARCHAR(100) | 密码（加密存储） | NOT NULL                             |
 | email | VARCHAR(100) | 邮箱 | NOT NULL, UNIQUE                     |
 | role | VARCHAR(20) | 用户角色（admin/user） | NOT NULL |

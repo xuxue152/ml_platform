@@ -1,8 +1,8 @@
 <template>
   <div class="management-container">
     <div class="management-header">
-      <h2>项目管理</h2>
-      <button @click="fetchExperiments" class="refresh-btn">
+      <h2>模型管理</h2>
+      <button @click="fetchmodels" class="refresh-btn">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="23 4 23 10 17 10"></polyline>
           <polyline points="1 20 1 14 7 14"></polyline>
@@ -18,37 +18,37 @@
         <p>加载中...</p>
       </div>
 
-      <div v-else-if="experiments.length === 0" class="empty-state">
+      <div v-else-if="models.length === 0" class="empty-state">
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19.21 15.98A7 7 0 0 0 8.14 6.23M6 10H2M6 6H2M6 14H2M6 18H2M18 4a2 2 0 0 0-2-2h-1a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2z"></path>
         </svg>
-        <p>暂无项目数据</p>
+        <p>暂无模型数据</p>
       </div>
 
       <div v-else class="table-responsive">
         <table class="data-table">
           <thead>
             <tr>
-              <th>项目名称</th>
-              <th>创建者id</th>
-              <th>创建时间</th>
-              <th>包含实验数量</th>
+              <th>模型名称</th>
+              <th>中文名</th>
+              <th>参数</th>
+              <th>模型类别</th>
               <th>操作</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="exp in experiments" :key="exp.name">
+            <tr v-for="exp in models" :key="exp.name">
               <td>{{ exp.name }}</td>
-              <td>{{ exp.user_id }}</td>
-              <td>{{ formatDate(exp.created_at) }}</td>
+              <td>{{ exp.chinese_name}}</td>
+              <td>{{ getParameterKeys(exp.parameters) }}</td>
               <td>
-                <span :class="['status-badge', exp.experiment_count]">
-                  {{ exp.experiment_count }}
+                <span :class="['role-badge', { 'classify': exp.model_type === 'classify'}]">
+                  {{ exp.model_type }}
                 </span>
               </td>
               <td class="actions">
                 <button
-                  @click="deleteExperiment(exp.name, exp.user_id)"
+                  @click="deleteModel(exp.name)"
                   class="action-btn delete"
                 >
                   删除
@@ -66,31 +66,41 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-const experiments = ref([])
+const models = ref([])
 const loading = ref(true)
 
-const fetchExperiments = async () => {
+const fetchmodels = async () => {
   try {
     loading.value = true
-    const response = await axios.get('http://localhost:8000/api/all_projects')
-    experiments.value = response.data
+    const response = await axios.get('http://localhost:8000/api/all_models')
+    models.value = response.data
   } catch (error) {
-    console.error('获取项目数据失败:', error)
+
+    console.error('获取模型数据失败:', error)
   } finally {
     loading.value = false
   }
 }
 
-const deleteExperiment = async (project_name,user_id) => {
-  if (!confirm('确定要删除此项目吗？')) return
+const getParameterKeys = (paramStr) => {
+  try {
+    const parsed = JSON.parse(paramStr)
+    return Object.keys(parsed).join(', ')
+  } catch (e) {
+    return '参数错误'
+  }
+}
+
+const deleteModel = async (model_name) => {
+  if (!confirm('确定要删除此模型吗？')) return
 
   try {
-    await axios.delete('http://localhost:8000/api/delete_project', {
-      data: { name: project_name,user_id:user_id },
+    await axios.delete('http://localhost:8000/api/model', {
+      data: { model_name: model_name },
     })
-    await fetchExperiments()
+    await fetchmodels()
   } catch (error) {
-    console.error('删除项目失败:', error)
+    console.error('删除模型失败:', error)
   }
 }
 
@@ -99,11 +109,25 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, options)
 }
 
-onMounted(fetchExperiments)
+onMounted(fetchmodels)
 </script>
 
 <style scoped>
-/* 保持之前的样式不变 */
+.role-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: #f0fff4; /* 淡绿色背景 */
+  color: #38a169;            /* 深绿色字体 */
+}
+
+.role-badge.classify {
+  background-color: #ebf8ff;
+  color: #3182ce;
+}
+
 .management-container {
   background-color: white;
   border-radius: 12px;
