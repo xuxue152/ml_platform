@@ -1,7 +1,10 @@
 <template>
   <div class="management-container">
     <div class="management-header">
-      <button @click="fetchDataset" class="refresh-btn">刷新数据</button>
+      <div class="left-ops">
+        <button @click="fetchDataset" class="refresh-btn">刷新数据</button>
+        <button @click="toggleSelectAll" class="refresh-btn">全选/取消全选</button>
+      </div>
       <div class="global-ops">
         <button @click="showGlobalDialog = true">全局操作</button>
         <button @click="showFillDialog = true">填充缺失</button>
@@ -140,6 +143,14 @@ const featureOperations = {
   target_encoding: '目标编码',
 }
 
+const toggleSelectAll = () => {
+  if (selectedFeatures.value.length === tableHeaders.value.length) {
+    selectedFeatures.value = []
+  } else {
+    selectedFeatures.value = [...tableHeaders.value]
+  }
+}
+
 const fetchDataset = async () => {
   loading.value = true
   try {
@@ -236,6 +247,10 @@ onMounted(fetchDataset)
   border: none;
   border-radius: 6px;
   cursor: pointer;
+}
+.left-ops {
+  display: flex;
+  gap: 1rem;
 }
 .global-ops {
   display: flex;
