@@ -6,7 +6,8 @@ from sklearn.feature_selection import SelectKBest, f_classif, mutual_info_classi
 from sklearn.decomposition import PCA
 from typing import Union, List, Dict,Optional
 from sqlmodel import select, SQLModel, Field,Session,Column,JSON
-import math
+import string
+import random
 from fastapi import HTTPException
 from datetime import datetime
 from sqlalchemy import text
@@ -21,6 +22,11 @@ class Datasets(SQLModel, table=True):
 class All_Datasets:
     def __init__(self, session: Session):
         self.session = session
+
+    def generate_id(self):
+        date_str = datetime.now().strftime("%Y%m%d")[2:]  # 获取当前日期，格式为 YYYYMMDD 去掉20
+        random_str = ''.join(random.choices(string.digits, k=3))  # 生成指定长度的随机数字字符串
+        return int(date_str + random_str)
 
     def show_dataset(self, data):
         existing = self.session.exec(
@@ -44,7 +50,7 @@ class All_Datasets:
         return result.fetchall()
 
     def create(self, data):
-        New_Dataset = Datasets(name=data['name'], user_id=data['user_id'], file_path=data['file_path'])
+        New_Dataset = Datasets(dataset_id=self.generate_id(),name=data['name'], user_id=data['user_id'], file_path=data['file_path'])
         self.session.add(New_Dataset)
         self.session.commit()
         self.session.refresh(New_Dataset)

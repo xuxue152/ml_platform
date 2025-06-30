@@ -14,7 +14,7 @@ def generate_id():
 
 class Experiments(SQLModel, table=True):
     experiment_id: int = Field(primary_key=True)  # 注意：取消 default=None
-    project_name: str = Field(max_length=100, nullable=False)
+    project_id: int = Field(nullable=False)
     user_id: int = Field(foreign_key="users.user_id", nullable=False)
     name: str = Field(max_length=100, nullable=False)
 
@@ -30,7 +30,7 @@ class All_Experiments:
     def create(self, data):
         exp = Experiments(
             experiment_id=generate_id(),
-            project_name=data.project_name,
+            project_id=data.project_id,
             user_id=data.user_id,
             name=data.name
         )

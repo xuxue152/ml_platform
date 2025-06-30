@@ -19,6 +19,16 @@ BEGIN
 END //
 DELIMITER ;
 
+-- 项目创建时间自动记录
+DELIMITER //
+CREATE TRIGGER before_experiment_insert
+BEFORE INSERT ON experiments
+FOR EACH ROW
+BEGIN
+    SET NEW.created_at = NOW();
+END //
+DELIMITER ;
+
 -- 数据集上传时间自动记录
 DELIMITER //
 CREATE TRIGGER before_dataset_insert

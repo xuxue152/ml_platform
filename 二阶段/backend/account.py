@@ -13,7 +13,6 @@ class Users(SQLModel, table=True):
     user_id: Optional[int] = Field(
         default=None,
         primary_key=True,
-        # sa_column_kwargs={"name": "user_id"}  # 明确指定列名
     )
     email: str = Field(index=True, unique=True)
     password: str

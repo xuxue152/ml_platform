@@ -3,6 +3,12 @@
     <div class="header-section">
       <h1>项目管理</h1>
       <div class="header-actions">
+        <button @click="refreshData" class="refresh-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M21.5 22a10 10 0 0 0-10-10 10 10 0 0 0-1.8.15M2.5 2a10 10 0 0 0 10 10 10 10 0 0 0 1.8-.15"></path>
+          </svg>
+          刷新数据
+        </button>
         <button @click="showCreateDialog = true" class="create-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -32,17 +38,17 @@
 
     <div v-else class="projects-grid">
       <div v-for="project in projects" :key="project.name" class="project-card">
-        <router-link :to="`/projects/${project.name}`" class="project-link">
+        <router-link :to="`/projects/${project.name}`" class="project-link" @click.native="() => setProjectId(project.project_id)">
           <div class="project-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
               <polyline points="14 2 14 8 20 8"></polyline>
             </svg>
           </div>
-          <h3 class="project-name">{{ project.name }}</h3>
+          <h3 class="project-name">{{ project.name }}（id: {{ project.project_id }}）</h3>
           <h3 class="project-name">
-  <span class="experiment-count">（{{ project.experiment_count }} 个实验）</span>
-</h3>
+            <span class="experiment-count">{{ project.experiment_count }} 个实验</span>
+          </h3>
           <div class="project-meta">
             <span class="meta-item">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -53,7 +59,7 @@
             </span>
           </div>
         </router-link>
-        <button @click.stop="confirmDelete(project.name)" class="delete-btn">
+        <button @click.stop="confirmDelete(project.project_id)" class="delete-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -107,6 +113,13 @@ const showCreateDialog = ref(false)
 const newProjectName = ref('')
 const userId = localStorage.getItem('user_id')
 
+const refreshData = async () => {
+  await fetchProjects()
+}
+const setProjectId = (id) => {
+  localStorage.setItem('project_id', id)
+}
+
 // 获取所有项目
 const fetchProjects = async () => {
   try {
@@ -140,15 +153,17 @@ const createProject = async () => {
 }
 
 // 删除项目
-const confirmDelete = (projectName) => {
-  if (confirm(`确定要删除项目 "${projectName}" 吗？此操作不可撤销。`)) {
-    deleteProject(projectName)
+const confirmDelete = (projectID) => {
+  if (confirm(`确定要删除项目吗？此操作不可撤销。`)) {
+    deleteProject(projectID)
   }
 }
 
-const deleteProject = async (projectName) => {
+const deleteProject = async (projectID) => {
   try {
-    await axios.delete('http://localhost:8000/api/delete_project', { data: { name: projectName ,user_id : userId} })
+    await axios.delete('http://localhost:8000/api/delete_project', {
+      data: { project_id: projectID }  // 注意这里要用 data 字段
+    })
     await fetchProjects()
   } catch (error) {
     console.error('删除项目失败:', error)
@@ -194,7 +209,29 @@ onMounted(fetchProjects)
 }
 
 .header-actions {
+  display: flex;
+  gap: 2rem; /* 按钮之间的间距 */
+  align-items: center;
   margin-left: auto; /* 自动推到右侧 */
+}
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem; /* 与 .create-btn 一致 */
+  background-color: #edf2f7;
+  border: none;
+  border-radius: 8px; /* 匹配 .create-btn */
+  color: #4a5568;
+  font-size: 0.95rem;
+  font-weight: 500; /* 可选：增强一致性 */
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.refresh-btn:hover {
+  background-color: #e2e8f0;
+  transform: translateY(-1px); /* 与 .create-btn:hover 一致 */
 }
 
 .create-btn {

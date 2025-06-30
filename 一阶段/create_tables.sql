@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- 数据集表
 CREATE TABLE IF NOT EXISTS datasets (
-    name VARCHAR(100) PRIMARY KEY,
+    dataset_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
     user_id INT NOT NULL,
     file_path VARCHAR(255) NOT NULL,
     uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -29,12 +30,13 @@ CREATE TABLE IF NOT EXISTS models (
     CHECK (model_type IN ('classify', 'regression'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 实验表
 CREATE TABLE IF NOT EXISTS experiments (
     experiment_id INT AUTO_INCREMENT PRIMARY KEY,
-    project_name VARCHAR(100) NOT NULL,
+    project_id INT NOT NULL,
     user_id INT NOT NULL,
     name VARCHAR(100) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(project_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -56,8 +58,11 @@ CREATE TABLE IF NOT EXISTS predictions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 项目表
-CREATE TABLE IF NOT EXISTS projects(
-    user_id INT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-)ENGINE=InnoDB DEFAULT CHARSET = utf8mb4;
+CREATE TABLE IF NOT EXISTS projects (
+    project_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+

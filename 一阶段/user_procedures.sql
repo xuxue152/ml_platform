@@ -2,12 +2,12 @@ use homework;
 
 -- 删除项目及其关联实验
 DELIMITER //
-CREATE PROCEDURE user_delete_project(IN p_project_name VARCHAR(100),IN p_user_id INT)
+CREATE PROCEDURE user_delete_project(IN p_project_id int)
 BEGIN
     -- 删除该项目关联的实验
-    DELETE FROM experiments WHERE project_name = p_project_name AND user_id = p_user_id;
+    DELETE FROM experiments WHERE project_id = p_project_id ;
     -- 删除该项目本身
-    DELETE FROM projects WHERE name = p_project_name AND user_id = p_user_id;
+    DELETE FROM projects WHERE project_id = p_project_id;
 END //
 DELIMITER ;
 
@@ -31,8 +31,8 @@ DELIMITER //
 create
     definer = root@localhost procedure get_all_projects()
 BEGIN
-    SELECT name ,user_id, created_at,
-    (SELECT COUNT(*) FROM experiments WHERE project_name = name) AS prediction_count
+    SELECT project_id,name ,user_id, created_at,
+    (SELECT COUNT(*) FROM experiments WHERE project_id = projects.project_id) AS experiment_count
     FROM projects;
 END //
 DELIMITER ;
@@ -76,8 +76,10 @@ create
     definer = root@localhost procedure get_user_projects(IN p_user_id int)
 BEGIN
     SELECT
+        project_id,
         name,
-        created_at
+        created_at,
+    (SELECT COUNT(*) FROM experiments WHERE project_id = project_id) AS experiment_count
     FROM
         projects
     WHERE
@@ -88,7 +90,7 @@ DELIMITER ;
 -- 返回用户实验信息
 DELIMITER //
 create
-    definer = root@localhost procedure get_user_experiments(IN p_user_id int,p_project_name VARCHAR(100))
+    definer = root@localhost procedure get_user_experiments(IN p_user_id int, IN p_project_name varchar(100))
 BEGIN
     SELECT
         e.experiment_id,
@@ -97,7 +99,7 @@ BEGIN
     FROM
         experiments e,projects p
     WHERE
-        e.user_id = p_user_id AND e.project_name=p_project_name;
+        e.user_id = p_user_id AND p.name=p_project_name;
 END //
 DELIMITER ;
 
@@ -107,9 +109,10 @@ create
     definer = root@localhost procedure get_user_projects(IN p_user_id int)
 BEGIN
     SELECT
+        project_id,
         name,
         created_at,
-    (SELECT COUNT(*) FROM experiments WHERE project_name = name) AS prediction_count
+    (SELECT COUNT(*) FROM experiments WHERE project_id = project_id) AS experiment_count
     FROM
         projects
     WHERE

@@ -95,7 +95,7 @@ const route = useRoute()
 const router = useRouter()
 
 const datasetName = route.params.dataset_name
-const userId = parseInt(localStorage.getItem('user_id'))
+const userId = localStorage.getItem('user_id')
 const projectName = localStorage.getItem('projectName')  // 获取项目名
 
 const allData = ref([])

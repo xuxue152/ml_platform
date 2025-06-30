@@ -1,59 +1,56 @@
 <template>
-  <div class="projects-container">
+  <div class="experiments-container">
     <div class="header-section">
-      <h1>项目管理</h1>
+      <h1>实验管理</h1>
       <div class="header-actions">
+        <button @click="refreshData" class="refresh-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M21.5 22a10 10 0 0 0-10-10 10 10 0 0 0-1.8.15M2.5 2a10 10 0 0 0 10 10 10 10 0 0 0 1.8-.15"></path>
+          </svg>
+          刷新数据
+        </button>
         <button @click="showCreateDialog = true" class="create-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          新建项目
+          新建实验
         </button>
       </div>
     </div>
 
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
-      <p>加载项目中...</p>
+      <p>加载实验中...</p>
     </div>
 
-    <div v-else-if="projects.length === 0" class="empty-state">
+    <div v-else-if="experiments.length === 0" class="empty-state">
       <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-        <polyline points="14 2 14 8 20 8"></polyline>
-        <line x1="16" y1="13" x2="8" y2="13"></line>
-        <line x1="16" y1="17" x2="8" y2="17"></line>
-        <polyline points="10 9 9 9 8 9"></polyline>
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
       </svg>
-      <h3>暂无项目</h3>
-      <p>点击上方按钮创建您的第一个项目</p>
+      <h3>暂无实验</h3>
+      <p>点击上方按钮创建您的第一个实验</p>
     </div>
 
-    <div v-else class="projects-grid">
-      <div v-for="project in projects" :key="project.name" class="project-card">
-        <router-link :to="`/projects/${project.name}`" class="project-link">
-          <div class="project-icon">
+    <div v-else class="experiments-grid">
+      <div v-for="experiment in experiments" :key="experiment.experiment_id" class="experiment-card">
+        <router-link :to="`/projects/${projectName}/experiments/${experiment.experiment_id}`" class="experiment-link">
+          <div class="experiment-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
             </svg>
           </div>
-          <h3 class="project-name">{{ project.name }}</h3>
-          <h3 class="project-name">
-  <span class="experiment-count">（{{ project.experiment_count }} 个实验）</span>
-</h3>
-          <div class="project-meta">
+          <h3 class="experiment-name">{{ experiment.name }}</h3>
+          <div class="experiment-meta">
             <span class="meta-item">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
               </svg>
-              创建于: {{ formatDate(project.created_at) }}
+              预测次数: {{ experiment.prediction_count }}
             </span>
           </div>
         </router-link>
-        <button @click.stop="confirmDelete(project.name)" class="delete-btn">
+        <button @click.stop="confirmDelete(experiment.experiment_id)" class="delete-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -64,11 +61,11 @@
       </div>
     </div>
 
-    <!-- 创建项目对话框 -->
+    <!-- 创建实验对话框 -->
     <div v-if="showCreateDialog" class="modal-overlay">
       <div class="modal-content">
         <div class="modal-header">
-          <h3>创建新项目</h3>
+          <h3>创建新实验</h3>
           <button @click="showCreateDialog = false" class="close-btn">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -78,19 +75,19 @@
         </div>
         <div class="modal-body">
           <div class="input-group">
-            <label for="project-name">项目名称</label>
+            <label for="experiment-name">实验名称</label>
             <input
-              id="project-name"
-              v-model="newProjectName"
+              id="experiment-name"
+              v-model="newExperimentName"
               type="text"
-              placeholder="输入项目名称"
-              @keyup.enter="createProject"
+              placeholder="输入实验名称"
+              @keyup.enter="createExperiment"
             />
           </div>
         </div>
         <div class="modal-footer">
           <button @click="showCreateDialog = false" class="cancel-btn">取消</button>
-          <button @click="createProject" class="confirm-btn" :disabled="!newProjectName">创建</button>
+          <button @click="createExperiment" class="confirm-btn" :disabled="!newExperimentName">创建</button>
         </div>
       </div>
     </div>
@@ -100,62 +97,78 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-
-const projects = ref([])
+import {useRoute} from "vue-router";
+const route = useRoute()
+const projectName = route.params.name;
+localStorage.setItem('projectName', projectName);
+const projectId = localStorage.getItem('project_id')
+const userId = localStorage.getItem('user_id')
+const experiments = ref([])
 const loading = ref(true)
 const showCreateDialog = ref(false)
-const newProjectName = ref('')
+const newExperimentName = ref('')
 
-// 获取所有项目
-const fetchProjects = async () => {
+// 获取所有实验
+const fetchExperiments = async () => {
   try {
     loading.value = true
-    const userId = localStorage.getItem('user_id')
-    const response = await axios.post('http://localhost:8000/api/projects',{user_id: userId})
-    projects.value = response.data
+    const response = await axios.post(
+      `http://localhost:8000/api/projects/${projectName}/get_experiments`,
+      { name: projectName, user_id: userId }
+    )
+    experiments.value = response.data
   } catch (error) {
-    console.error('获取项目列表失败:', error)
+    console.error('获取实验列表失败:', error)
   } finally {
     loading.value = false
   }
 }
 
-const createProject = async () => {
-  if (!newProjectName.value.trim()) return
+// 刷新数据
+const refreshData = async () => {
+  await fetchExperiments()
+}
+
+const createExperiment = async () => {
+  if (!newExperimentName.value.trim()) return
 
   try {
-    const userId = localStorage.getItem('user_id')
-    await axios.post('http://localhost:8000/api/create_project', {
-      name: newProjectName.value.trim() ,user_id : userId
-    })
-    await fetchProjects()
+    await axios.post(
+      `http://localhost:8000/api/projects/${projectName}/experiments`,
+      {
+        project_id : projectId,
+        user_id: userId,
+        name: newExperimentName.value.trim()
+      }
+    )
+    await fetchExperiments()
     showCreateDialog.value = false
-    newProjectName.value = ''
+    newExperimentName.value = ''
   } catch (error) {
     if (error.response && error.response.status === 400) {
-      alert('项目已存在')
-      const userId = localStorage.getItem('user_id')
-      alert(userId)
+      alert('实验名称已存在')
     } else {
-      console.error('创建项目失败:', error)
+      console.error('创建实验失败:', error)
     }
   }
 }
 
-// 删除项目
-const confirmDelete = (projectName) => {
-  if (confirm(`确定要删除项目 "${projectName}" 吗？此操作不可撤销。`)) {
-    deleteProject(projectName)
+// 删除实验
+const confirmDelete = (experimentId) => {
+  if (confirm('确定要删除此实验吗？此操作不可撤销。')) {
+    deleteExperiment(experimentId)
   }
 }
 
-const deleteProject = async (projectName) => {
+const deleteExperiment = async (experimentId) => {
   try {
-    const userId = localStorage.getItem('user_id')
-    await axios.delete('http://localhost:8000/api/delete_project', { data: { name: projectName ,user_id : userId} })
-    await fetchProjects()
+    await axios.delete(
+      `http://localhost:8000/api/projects/${projectName}/experiments`,
+      { data: { experiment_id: experimentId } }
+    )
+    await fetchExperiments()
   } catch (error) {
-    console.error('删除项目失败:', error)
+    console.error('删除实验失败:', error)
   }
 }
 
@@ -165,32 +178,28 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, options)
 }
 
-// 初始化加载数据
-onMounted(fetchProjects)
+onMounted(() => {
+  fetchExperiments()
+})
 </script>
 
 <style scoped>
-.projects-container {
+.experiments-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
 
 .header-section {
-  width: 40vw; /* 或 100% */
-  padding: 0 2rem;
-  box-sizing: border-box;
-  height: 4.5rem;
-  display: grid;
-  grid-template-columns: auto 1fr;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  column-gap: 1rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-
 .header-section h1 {
-  flex-shrink: 0;     /* 防止标题被压缩 */
   margin: 0;
   font-size: 1.75rem;
   font-weight: 600;
@@ -198,7 +207,26 @@ onMounted(fetchProjects)
 }
 
 .header-actions {
-  margin-left: auto; /* 自动推到右侧 */
+  display: flex;
+  gap: 1rem;
+}
+
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #edf2f7;
+  border: none;
+  border-radius: 6px;
+  color: #4a5568;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.refresh-btn:hover {
+  background-color: #e2e8f0;
 }
 
 .create-btn {
@@ -264,14 +292,14 @@ onMounted(fetchProjects)
   font-size: 0.95rem;
 }
 
-.projects-grid {
+.experiments-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
   margin-top: 1rem;
 }
 
-.project-card {
+.experiment-card {
   position: relative;
   background-color: white;
   border-radius: 12px;
@@ -280,25 +308,25 @@ onMounted(fetchProjects)
   transition: all 0.2s ease;
 }
 
-.project-card:hover {
+.experiment-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-.project-link {
+.experiment-link {
   text-decoration: none;
   color: inherit;
   display: block;
 }
 
-.project-icon {
+.experiment-icon {
   display: flex;
   justify-content: center;
   margin-bottom: 1rem;
   color: #4361ee;
 }
 
-.project-name {
+.experiment-name {
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
@@ -306,7 +334,7 @@ onMounted(fetchProjects)
   text-align: center;
 }
 
-.project-meta {
+.experiment-meta {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -338,7 +366,7 @@ onMounted(fetchProjects)
   opacity: 0;
 }
 
-.project-card:hover .delete-btn {
+.experiment-card:hover .delete-btn {
   opacity: 1;
 }
 
@@ -473,172 +501,23 @@ onMounted(fetchProjects)
 }
 
 @media (max-width: 768px) {
-  .projects-grid {
+  .experiments-grid {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
 
   .header-section {
-
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
 
+  .header-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
   .modal-content {
     width: 90%;
   }
-}
-</style>
-
-
-<style scoped>
-/* 保持之前的样式不变 */
-.management-container {
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-}
-
-.management-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.management-header h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #2d3748;
-}
-
-.refresh-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: #edf2f7;
-  border: none;
-  border-radius: 6px;
-  color: #4a5568;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.refresh-btn:hover {
-  background-color: #e2e8f0;
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 0;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e2e8f0;
-  border-top: 4px solid #4361ee;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 0;
-  color: #718096;
-}
-
-.empty-state svg {
-  margin-bottom: 1rem;
-  stroke: #cbd5e0;
-}
-
-.table-responsive {
-  overflow-x: auto;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.data-table th,
-.data-table td {
-  padding: 0.75rem 1rem;
-  text-align: left;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.data-table th {
-  font-weight: 600;
-  color: #4a5568;
-  background-color: #f7fafc;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.status-badge.active {
-  background-color: #f0fff4;
-  color: #38a169;
-}
-
-.status-badge.inactive {
-  background-color: #fffaf0;
-  color: #dd6b20;
-}
-
-.status-badge.completed {
-  background-color: #ebf8ff;
-  color: #3182ce;
-}
-
-.actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.action-btn {
-  padding: 0.375rem 0.75rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.action-btn.delete {
-  background-color: #fff5f5;
-  color: #e53e3e;
-}
-
-.action-btn.delete:hover {
-  background-color: #fed7d7;
 }
 </style>

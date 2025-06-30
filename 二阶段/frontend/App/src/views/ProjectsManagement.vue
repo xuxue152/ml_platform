@@ -2,7 +2,7 @@
   <div class="management-container">
     <div class="management-header">
       <h2>项目管理</h2>
-      <button @click="fetchExperiments" class="refresh-btn">
+      <button @click="fetchProjects" class="refresh-btn">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="23 4 23 10 17 10"></polyline>
           <polyline points="1 20 1 14 7 14"></polyline>
@@ -18,7 +18,7 @@
         <p>加载中...</p>
       </div>
 
-      <div v-else-if="experiments.length === 0" class="empty-state">
+      <div v-else-if="projects.length === 0" class="empty-state">
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19.21 15.98A7 7 0 0 0 8.14 6.23M6 10H2M6 6H2M6 14H2M6 18H2M18 4a2 2 0 0 0-2-2h-1a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2z"></path>
         </svg>
@@ -29,6 +29,7 @@
         <table class="data-table">
           <thead>
             <tr>
+              <th>ID</th>
               <th>项目名称</th>
               <th>创建者id</th>
               <th>创建时间</th>
@@ -37,18 +38,15 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="exp in experiments" :key="exp.name">
+            <tr v-for="exp in projects" :key="exp.name">
+              <td>{{ exp.project_id }}</td>
               <td>{{ exp.name }}</td>
               <td>{{ exp.user_id }}</td>
               <td>{{ formatDate(exp.created_at) }}</td>
-              <td>
-                <span :class="['status-badge', exp.experiment_count]">
-                  {{ exp.experiment_count }}
-                </span>
-              </td>
+              <td>{{ exp.experiment_count }}</td>
               <td class="actions">
                 <button
-                  @click="deleteExperiment(exp.name, exp.user_id)"
+                  @click="deleteProject(exp.project_id)"
                   class="action-btn delete"
                 >
                   删除
@@ -66,14 +64,14 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-const experiments = ref([])
+const projects = ref([])
 const loading = ref(true)
 
-const fetchExperiments = async () => {
+const fetchProjects = async () => {
   try {
     loading.value = true
     const response = await axios.get('http://localhost:8000/api/all_projects')
-    experiments.value = response.data
+    projects.value = response.data
   } catch (error) {
     console.error('获取项目数据失败:', error)
   } finally {
@@ -81,14 +79,14 @@ const fetchExperiments = async () => {
   }
 }
 
-const deleteExperiment = async (project_name,user_id) => {
+const deleteProject = async (project_name,user_id) => {
   if (!confirm('确定要删除此项目吗？')) return
 
   try {
     await axios.delete('http://localhost:8000/api/delete_project', {
       data: { name: project_name,user_id:user_id },
     })
-    await fetchExperiments()
+    await fetchProjects()
   } catch (error) {
     console.error('删除项目失败:', error)
   }
@@ -99,7 +97,7 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, options)
 }
 
-onMounted(fetchExperiments)
+onMounted(fetchProjects)
 </script>
 
 <style scoped>

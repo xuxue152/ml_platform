@@ -110,6 +110,9 @@ class ProjectNameRequest(BaseModel):
     name: str
     user_id: int
 
+class ProjectDeleteRequest(BaseModel):
+    project_id :int
+
 @app.post("/api/projects")
 def get_all_projects(data : IDRequest,session: Session = Depends(get_session)):
     projects_manager = All_Projects(session)
@@ -121,29 +124,38 @@ def create_project(data: ProjectNameRequest,session: Session = Depends(get_sessi
     return projects_manager.create_project(data.name,data.user_id)
 
 @app.delete("/api/delete_project")
-def delete_project(data: ProjectNameRequest,session: Session = Depends(get_session)):
+def delete_project(data: ProjectDeleteRequest,session: Session = Depends(get_session)):
     print("received")
     projects_manager = All_Projects(session)
-    return projects_manager.delete_project(data.name,data.user_id)
+    return projects_manager.delete_project(data.project_id)
 
 class ExperimentCreate(BaseModel):
-    project_name: str
+    project_id :int
     user_id: int
     name: str
 
 class ExperimentDelete(BaseModel):
     experiment_id: int
 
-@app.get("/api/projects/{name}/experiments")
-async def get_all_experiments(name: str, user_id: int, session: Session = Depends(get_session)):
-    return All_Experiments(session).get_all(user_id, name)
+class ExperimentQuery(BaseModel):
+    name: str
+    user_id: int
 
-@app.post("/api/projects/{name}/experiments")
-async def create_experiment(data: ExperimentCreate, session: Session = Depends(get_session)):
+@app.post("/api/projects/{project_name}/get_experiments")
+async def get_all_experiments(
+    data: ExperimentQuery,
+    project_name: str = Path(...),
+    session: Session = Depends(get_session)
+):
+    print('received')
+    return All_Experiments(session).get_all(data.user_id, data.name)
+
+@app.post("/api/projects/{project_name}/experiments")
+async def create_experiment(data: ExperimentCreate,project_name: str = Path(...), session: Session = Depends(get_session)):
     return All_Experiments(session).create(data)
 
-@app.delete("/api/projects/{name}/experiments")
-async def delete_experiment(data: ExperimentDelete, session: Session = Depends(get_session)):
+@app.delete("/api/projects/{project_name}/experiments")
+async def delete_experiment(data: ExperimentDelete,project_name: str = Path(...), session: Session = Depends(get_session)):
     return All_Experiments(session).delete(data.experiment_id)
 
 class DatasetGet(BaseModel):
