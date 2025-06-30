@@ -49,6 +49,15 @@
               预测次数: {{ experiment.prediction_count }}
             </span>
           </div>
+          <div class="project-meta">
+            <span class="meta-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              创建于: {{ formatDate(experiment.created_at) }}
+            </span>
+          </div>
         </router-link>
         <button @click.stop="confirmDelete(experiment.experiment_id)" class="delete-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
