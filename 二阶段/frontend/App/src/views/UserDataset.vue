@@ -80,7 +80,8 @@ import axios from 'axios'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const projectName = route.params.name
+const projectName = route.params.name;
+localStorage.setItem('projectName', projectName);
 const datasets = ref([])
 const loading = ref(true)
 const fileInput = ref(null)

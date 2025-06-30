@@ -47,7 +47,9 @@
             </option>
           </select>
           <button @click="applyOperation">应用</button>
+          <button class="finish-btn" @click="goBackToDatasetList">完成修改</button>
         </div>
+
 
         <div class="pagination">
           <button @click="prevPage" :disabled="currentPage === 1">上一页</button>
@@ -61,9 +63,9 @@
     <div v-if="showGlobalDialog" class="dialog-overlay">
       <div class="dialog">
         <h3>选择全局操作</h3>
-        <button @click="applyGlobal('drop_duplicates')">删除重复值</button>
-        <button @click="applyGlobal('drop_high_missing')">删除高缺失</button>
-        <button @click="applyGlobal('drop_low_variance')">删除低方差</button>
+        <button @click="() => { applyGlobal('drop_duplicates'); showGlobalDialog = false }">删除重复值</button>
+        <button @click="() => { applyGlobal('drop_high_missing'); showGlobalDialog = false }">删除高缺失</button>
+        <button @click="() => { applyGlobal('drop_low_variance'); showGlobalDialog = false }">删除低方差</button>
         <button @click="showGlobalDialog = false">关闭</button>
       </div>
     </div>
@@ -72,9 +74,9 @@
     <div v-if="showFillDialog" class="dialog-overlay">
       <div class="dialog">
         <h3>选择填充方式</h3>
-        <button @click="applyFill('fill_mean')">均值填充</button>
-        <button @click="applyFill('fill_median')">中位数填充</button>
-        <button @click="applyFill('fill_mode')">众数填充</button>
+        <button @click="() => { applyFill('fill_mean'); showFillDialog = false }">均值填充</button>
+        <button @click="() => { applyFill('fill_median'); showFillDialog = false }">中位数填充</button>
+        <button @click="() => { applyFill('fill_mode'); showFillDialog = false }">众数填充</button>
         <button @click="showFillDialog = false">关闭</button>
       </div>
     </div>
@@ -84,11 +86,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
+
 const datasetName = route.params.dataset_name
 const userId = parseInt(localStorage.getItem('user_id'))
+const projectName = localStorage.getItem('projectName')  // 获取项目名
 
 const allData = ref([])
 const tableHeaders = ref([])
@@ -106,7 +111,16 @@ const pagedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize
   return allData.value.slice(start, start + pageSize)
 })
-
+const reloadOps = new Set([
+  'drop',
+  'datetime_extraction',
+  'drop_duplicates',
+  'drop_high_missing',
+  'drop_low_variance',
+  'target_encoding',
+  'pca',
+  'one_hot'
+])
 const featureOperations = {
   drop: '删除特征',
   remove_outliers: '删除异常值',
@@ -171,18 +185,35 @@ const applyMeasures = async (measures) => {
       user_id: userId,
       measures
     })
-    await fetchDataset()
+    // 获取所有操作名
+    const ops = measures.map(m => m.operation)
+    const shouldReload = ops.some(op => reloadOps.has(op))
+
+    if (shouldReload) {
+      location.reload()
+    } else {
+      await fetchDataset()
+    }
   } catch (err) {
     console.error('操作失败:', err)
-    alert(`操作失败: ${err.response?.data?.detail || err.message}`);
+    alert(`操作失败: ${err.response?.data?.detail || err.message}`)
   }
 }
 
 const prevPage = () => { if (currentPage.value > 1) currentPage.value-- }
 const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
 
+const goBackToDatasetList = () => {
+  if (projectName) {
+    router.push(`/projects/${projectName}/datasets`)
+  } else {
+    alert('项目名不存在，请检查 localStorage 中的 projectName')
+  }
+}
+
 onMounted(fetchDataset)
 </script>
+
 
 <style scoped>
 .management-container {
@@ -258,4 +289,18 @@ onMounted(fetchDataset)
   flex-direction: column;
   gap: 1rem;
 }
+.finish-btn {
+  background-color: #3182ce; /* 蓝色主色 */
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  float: right; /* 将按钮推到容器右侧 */
+  margin-left: auto;
+}
+.finish-btn:hover {
+  background-color: #2b6cb0; /* 蓝色 hover 变深 */
+}
+
 </style>
