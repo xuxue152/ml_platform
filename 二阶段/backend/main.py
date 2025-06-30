@@ -212,6 +212,7 @@ async def delete_dataset( data: DatasetCreate, session: Session = Depends(get_se
     return All_Datasets(session).delete(data.name,data.user_id)
 
 class PredictionCreate(BaseModel):
+    name: str
     experiment_id: int
     model_name: str
     dataset_name: str
@@ -222,22 +223,20 @@ class PredictionCreate(BaseModel):
 class Prediction(BaseModel):
     prediction_id: int
 
-@app.post("/api/projects/{project_name}/predictions")
-def list_prediction(data: PredictionCreate, session: Session = Depends(get_session)):
-    return All_Predictions(session).create(data.experiment_id)
+class PredictionList(BaseModel):
+    experiment_id: int
+@app.post("/api/experiments/{experiment_name}/predictions")
+def list_prediction(data: PredictionList,experiment_name: str = Path(...), session: Session = Depends(get_session)):
+    return All_Predictions(session).get_predictions(data.experiment_id)
 
-@app.post("/api/projects/{project_name}/get_prediction")
-def prediction(data: Prediction,session: Session = Depends(get_session)):
-    return All_Predictions(session).get_predictions(data.prediction_id)
-
-@app.post("/api/projects/{project_name}/run_prediction")
-def prediction(data: Prediction,session: Session = Depends(get_session)):
+@app.post("/api/experiments/{experiment_name}/run_prediction")
+def prediction(data: Prediction,experiment_name: str = Path(...),session: Session = Depends(get_session)):
     return All_Predictions(session).run_model(data.prediction_id)
 
-@app.post("/api/projects/{project_name}/create_predictions")
-def create_prediction(data: PredictionCreate, session: Session = Depends(get_session)):
+@app.post("/api/experiments/{experiment_name}/create_predictions")
+def create_prediction(data: PredictionCreate, experiment_name: str = Path(...),session: Session = Depends(get_session)):
     return All_Predictions(session).create(data)
 
-@app.delete("/api/projects/{project_name}/predictions/{prediction_id}")
-def delete_prediction(data: Prediction, session: Session = Depends(get_session)):
+@app.delete("/api/experiments/{experiment_name}/prediction")
+def delete_prediction(data: Prediction,experiment_name: str = Path(...), session: Session = Depends(get_session)):
     return All_Predictions(session).delete(data.prediction_id)

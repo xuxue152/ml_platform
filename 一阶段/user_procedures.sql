@@ -155,20 +155,8 @@ create
     definer = root@localhost procedure get_predictions(IN p_experiment_id int)
 BEGIN
     SELECT
-        p.prediction_id
-    FROM
-        predictions p
-    WHERE
-        p.experiment_id = p_experiment_id;
-END //
-DELIMITER ;
-
--- 返回预测结果
-DELIMITER //
-create
-    definer = root@localhost procedure get_prediction(IN p_prediction_id int)
-BEGIN
-    SELECT
+        p.prediction_id,
+        p.name,
         p.model_name,
         p.dataset_name,
         p.parameters,
@@ -178,6 +166,7 @@ BEGIN
     FROM
         predictions p
     WHERE
-        p.prediction_id=p_prediction_id;
+        p.experiment_id = p_experiment_id;
 END //
 DELIMITER ;
+

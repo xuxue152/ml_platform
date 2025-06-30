@@ -34,7 +34,8 @@
 
     <div v-else class="experiments-grid">
       <div v-for="experiment in experiments" :key="experiment.experiment_id" class="experiment-card">
-        <router-link :to="`/projects/${projectName}/experiments/${experiment.experiment_id}`" class="experiment-link">
+        <router-link :to="`/experiments/${experiment.name}`" class="experiment-link" @click="storeExperimentId(experiment.experiment_id)"
+> >
           <div class="experiment-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -116,6 +117,10 @@ const experiments = ref([])
 const loading = ref(true)
 const showCreateDialog = ref(false)
 const newExperimentName = ref('')
+
+const storeExperimentId = (id) => {
+  localStorage.setItem('experiment_id', id)
+}
 
 // 获取所有实验
 const fetchExperiments = async () => {

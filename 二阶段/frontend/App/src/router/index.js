@@ -10,6 +10,7 @@ import UserExperiment from '../views/UserExperiment.vue'
 import UserDataset from "../views/UserDataset.vue";
 import UserModels from "../views/UserModels.vue";
 import DatasetView from "../views/DatasetView.vue"
+import ExperimentView from "../views/ExperimentView.vue"
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -51,7 +52,12 @@ const router = createRouter({
       component: DatasetView,
       name: 'DatasetView',
       props: true
-
+    },
+    {
+      path: '/experiments/:experiment_name',
+      component: ExperimentView,
+      name: 'ExperimentView',
+      props: true
     },
     {
     path: '/projects/:name',

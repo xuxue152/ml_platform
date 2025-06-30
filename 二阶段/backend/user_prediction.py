@@ -135,10 +135,8 @@ class ModelRunner:
         }
 
 class Prediction(SQLModel, table=True):
-    __table_args__ = (
-        CheckConstraint("status IN ('completed', 'training', 'failed', 'pending')", name="status_check"),
-    )
     prediction_id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(max_length=100)
     experiment_id: Optional[int] = Field(default=None, foreign_key="experiments.experiment_id")
     model_name: str = Field(max_length=100, foreign_key="models.name")
     dataset_name: str = Field(max_length=100, foreign_key="datasets.name")
@@ -195,7 +193,7 @@ class All_Predictions:
         try:
             New_Prediction = Prediction(prediction_id=generate_id(),experiment_id=data.experiment_id,
             model_name=data.model_name,dataset_name=data.dataset_name,user_id=data.user_id,
-            parameters=data.parameters,status='pending',metrics=data.metrics)
+            parameters=data.parameters,status='pending',metrics=data.metrics,name=data.name)
             self.session.add(New_Prediction)
             self.session.commit()
             self.session.refresh(New_Prediction)
@@ -218,17 +216,5 @@ class All_Predictions:
             result = conn.execute(text("CALL get_predictions(:p_experiment_id)"),{"p_experiment_id": experiment_id})
             rows = result.fetchall()
             return [dict(row) for row in rows]
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"获取失败: {str(e)}")
-
-    def get_prediction(self, prediction_id: int):
-        try:
-            conn = self.session.connection()
-            result = conn.execute(text("CALL get_prediction(:p_prediction_id)"),{"p_prediction_id": prediction_id})
-            row = result.first()
-            if row:
-                return dict(row)
-            else:
-                raise HTTPException(status_code=404, detail="预测记录不存在")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"获取失败: {str(e)}")

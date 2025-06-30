@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS experiments (
 -- 预测表
 CREATE TABLE IF NOT EXISTS predictions (
     prediction_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
     experiment_id INT ,
     model_name VARCHAR(100) NOT NULL,
     dataset_name VARCHAR(100) NOT NULL,
