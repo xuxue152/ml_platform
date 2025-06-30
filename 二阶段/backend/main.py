@@ -13,7 +13,7 @@ from sqlalchemy import JSON
 from typing import Dict,List
 import os
 from fastapi.responses import ORJSONResponse
-app = FastAPI()
+app = FastAPI(debug=True)
 
 # 允许跨域
 app.add_middleware(

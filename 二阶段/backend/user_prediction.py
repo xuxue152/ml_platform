@@ -20,6 +20,7 @@ from sklearn.metrics import (
     mean_squared_error, mean_absolute_error, r2_score,
     explained_variance_score, median_absolute_error
 )
+import numpy as np
 
 def generate_id():
     date_str = datetime.now().strftime("%Y%m%d")[2:]  # 获取当前日期，格式为 YYYYMMDD 去掉20
@@ -54,7 +55,35 @@ class ModelRunner:
     @staticmethod
     def run_model(model_name, params, metrics, file_path: str,user_id):
         # 读取数据
-        df = pd.read_csv(file_path)
+        try:
+            df = pd.read_csv(file_path)
+        except Exception as e:
+            raise HTTPException(status_code=499, detail=f"读取文件失败: {str(e)}")
+
+        # 检查缺失值（已有）
+        missing_cols = df.columns[df.isnull().any()].tolist()
+        if missing_cols:
+            missing_report = {col: int(df[col].isnull().sum()) for col in missing_cols}
+            print(missing_report)
+
+        # 检查无穷值或过大值
+        invalid_cols = {}
+        for col in df.columns:
+            if not np.issubdtype(df[col].dtype, np.number):
+                continue
+            if np.isinf(df[col]).any() or (df[col].abs() > 1e308).any():
+                invalid_cols[col] = {
+                    "inf_count": int(np.isinf(df[col]).sum()),
+                    "too_large_count": int((df[col].abs() > 1e308).sum())
+                }
+
+        if invalid_cols:
+            print(invalid_cols)
+
+        missing_cols = df.columns[df.isnull().any()].tolist()
+        if missing_cols:
+            print(missing_cols)
+
         X = df.iloc[:, :-1]
         y = df.iloc[:, -1]
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -134,7 +163,7 @@ class ModelRunner:
             "metrics": full_metrics
         }
 
-class Prediction(SQLModel, table=True):
+class Predictions(SQLModel, table=True):
     prediction_id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(max_length=100)
     experiment_id: Optional[int] = Field(default=None, foreign_key="experiments.experiment_id")
@@ -144,7 +173,6 @@ class Prediction(SQLModel, table=True):
     parameters: Optional[Dict] = Field(default={}, sa_column=Column(JSON))
     status: str = Field(nullable=False, max_length=20)
     metrics: Dict = Field(default={}, sa_column=Column(JSON))
-    predicted_at: Optional[datetime] = Field(default=None)
 
 class All_Predictions:
     def __init__(self, session: Session):
@@ -152,13 +180,15 @@ class All_Predictions:
 
     def return_address(self, dataset_name: str, user_id: int) -> str:
         conn = self.session.connection()
-        conn.execute(text("CALL get_dataset_path(:p_dataset_name, :p_user_id, @file_path)"),
-                     {"p_dataset_name": dataset_name, "p_user_id": user_id})
-        return conn.execute(text("SELECT @file_path")).scalar()
+        conn.execute(text("SET @file_path = '';"))
+        conn.execute(text("CALL get_dataset_path(:p_user_id, :p_dataset_name, @file_path);"),
+                     {"p_user_id": user_id, "p_dataset_name": dataset_name})
+        result = conn.execute(text("SELECT @file_path")).scalar()
+        return result
 
     def run_model(self, prediction_id: int):
         try:
-            prediction = self.session.exec(select(Prediction).where(Prediction.prediction_id == prediction_id)).first()
+            prediction = self.session.exec(select(Predictions).where(Predictions.prediction_id == prediction_id)).first()
             if not prediction:
                 raise HTTPException(status_code=404, detail="预测记录不存在")
             prediction.status = "training"
@@ -169,12 +199,13 @@ class All_Predictions:
             address = self.return_address(dataset_name, user_id)
             result = ModelRunner.run_model(prediction.model_name, prediction.parameters,
                                                    prediction.metrics, address,prediction.user_id)
+
             result_metrics=result["metrics"]
             result_path=result["result_path"]
             report_path=result["report_path"]
             prediction.status = "completed"
             prediction.metrics = result_metrics
-            prediction.predicted_at = datetime.now()
+            print(prediction)
             self.session.add(prediction)
             self.session.commit()
             return {"message": "模型执行成功", "metrics": result_metrics}
@@ -191,14 +222,36 @@ class All_Predictions:
 
     def create(self, data):
         try:
-            New_Prediction = Prediction(prediction_id=generate_id(),experiment_id=data.experiment_id,
-            model_name=data.model_name,dataset_name=data.dataset_name,user_id=data.user_id,
-            parameters=data.parameters,status='pending',metrics=data.metrics,name=data.name)
+            # 验证JSON字段
+            try:
+                json.dumps(data.parameters)
+                json.dumps(data.metrics)
+            except TypeError as e:
+                raise HTTPException(status_code=400, detail=f"参数或指标格式无效: {str(e)}")
+
+            # 创建记录
+            New_Prediction = Predictions(
+                prediction_id=generate_id(),
+                name=data.name,
+                experiment_id=data.experiment_id,
+                model_name=data.model_name,
+                dataset_name=data.dataset_name,
+                user_id=data.user_id,
+                parameters=data.parameters,
+                status='pending',
+                metrics=data.metrics
+            )
+
             self.session.add(New_Prediction)
             self.session.commit()
             self.session.refresh(New_Prediction)
-            return {"message": "预测记录添加成功"}
+
+            return {"message": "预测记录添加成功", "prediction_id": New_Prediction.prediction_id}
+
+        except HTTPException:
+            raise  # 重新抛出已知的HTTP异常
         except Exception as e:
+            self.session.rollback()
             raise HTTPException(status_code=500, detail=f"添加预测失败: {str(e)}")
 
     def delete(self, prediction_id: int):
