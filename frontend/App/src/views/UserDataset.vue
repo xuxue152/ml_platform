@@ -3,12 +3,11 @@
     <div class="management-header">
       <h2>个人数据集管理</h2>
 
-      <!-- 上传按钮 -->
-      <button @click="triggerFileSelect" class="refresh-btn">
+      <button @click="triggerFileSelect" class="upload-btn">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="23 4 23 10 17 10"></polyline>
-          <polyline points="1 20 1 14 7 14"></polyline>
-          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+          <path d="M12 12v9"></path>
+          <path d="m16 16-4-4-4 4"></path>
         </svg>
         上传数据集
         <input type="file" ref="fileInput" @change="handleFileChange" style="display: none" />
@@ -176,7 +175,18 @@ onMounted(fetchDatasets)
   font-weight: 600;
   color: #2d3748;
 }
-
+.upload-btn {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 2rem;
+  background-color: #edf2f7;
+  border: none;
+  border-radius: 6px;
+  color: #4a5568;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 .refresh-btn {
   display: flex;
   align-items: center;

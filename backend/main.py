@@ -229,6 +229,10 @@ class PredictionList(BaseModel):
 def list_prediction(data: PredictionList,experiment_name: str = Path(...), session: Session = Depends(get_session)):
     return All_Predictions(session).get_predictions(data.experiment_id)
 
+@app.post("/api/experiments/{experiment_name}/prediction")
+def list_prediction(data: Prediction,experiment_name: str = Path(...), session: Session = Depends(get_session)):
+    return All_Predictions(session).get_prediction(data.prediction_id)
+
 @app.post("/api/experiments/{experiment_name}/run_prediction")
 def prediction(data: Prediction,experiment_name: str = Path(...),session: Session = Depends(get_session)):
     return All_Predictions(session).run_model(data.prediction_id)

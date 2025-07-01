@@ -363,5 +363,35 @@ params_map = {
         "latent_dim": [16, 64],
         "num_layers": [1, 3],
         "activation": ["relu", "tanh"]
+    },
+    "xgboost": {
+      "n_estimators": [50, 500],
+      "max_depth": [3, 15],
+      "learning_rate": [0.01, 0.3],
+      "subsample": [0.5, 1.0],
+      "colsample_bytree": [0.5, 1.0],
+      "min_child_weight": [1, 10],
+      "gamma": [0, 5],
+      "reg_alpha": [0, 5],
+      "reg_lambda": [0, 5]
+    },
+    "lightgbm": {
+      "n_estimators": [50, 500],
+      "learning_rate": [0.01, 0.3],
+      "num_leaves": [31, 256],
+      "max_depth": [3, 15],
+      "min_child_samples": [5, 50],
+      "subsample": [0.5, 1.0],
+      "colsample_bytree": [0.5, 1.0],
+      "reg_alpha": [0.0, 5.0],
+      "reg_lambda": [0.0, 5.0]
+    },
+    "catboost": {
+      "iterations": [100, 1000],
+      "depth": [4, 10],
+      "learning_rate": [0.01, 0.3],
+      "l2_leaf_reg": [1.0, 10.0],
+      "bagging_temperature": [0.0, 1.0],
+      "random_strength": [0.0, 1.0]
     }
 }

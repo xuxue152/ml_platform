@@ -170,3 +170,22 @@ BEGIN
 END //
 DELIMITER ;
 
+-- 返回预测详细信息
+DELIMITER //
+create
+    definer = root@localhost procedure get_prediction(IN p_prediction_id int)
+BEGIN
+    SELECT
+        p.name,
+        p.model_name,
+        p.dataset_name,
+        p.parameters,
+        p.status,
+        p.predicted_at,
+        p.metrics
+    FROM
+        predictions p
+    WHERE
+        p.prediction_id = p_prediction_id;
+END //
+DELIMITER ;

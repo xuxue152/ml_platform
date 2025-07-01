@@ -40,14 +40,22 @@ class ModelRunner:
         for key, val in given_params.items():
             if key not in valid_params:
                 raise ValueError(f"无效参数: {key} 不属于模型 {model_name}")
-            # 检查值是否在备选项中（支持范围[最小值, 最大值]）
+
             allowed = valid_params[key]
-            if isinstance(allowed, list) and len(allowed) == 2 and isinstance(allowed[0], (int, float)):
+
+            # 处理布尔值参数的特殊情况
+            if isinstance(allowed, list) and len(allowed) == 2 and all(isinstance(x, bool) for x in allowed):
+                # 布尔值枚举类型
+                if val not in allowed:
+                    raise ValueError(f"参数 {key} 的值 {val} 不在允许值 {allowed} 中")
+            elif isinstance(allowed, list) and len(allowed) == 2 and isinstance(allowed[0], (int, float)):
                 # 范围型数值参数
                 if not (allowed[0] <= val <= allowed[1]):
                     raise ValueError(f"参数 {key}={val} 不在有效范围 {allowed} 内")
             elif isinstance(allowed, list) and val not in allowed:
+                # 普通枚举类型
                 raise ValueError(f"参数 {key} 的值 {val} 不在允许值 {allowed} 中")
+
             validated[key] = val
 
         return validated
@@ -267,6 +275,15 @@ class All_Predictions:
         try:
             conn = self.session.connection()
             result = conn.execute(text("CALL get_predictions(:p_experiment_id)"),{"p_experiment_id": experiment_id})
+            rows = result.fetchall()
+            return [dict(row) for row in rows]
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"获取失败: {str(e)}")
+
+    def get_prediction(self, prediction_id: int):
+        try:
+            conn = self.session.connection()
+            result = conn.execute(text("CALL get_prediction(:p_prediction_id)"),{"p_prediction_id": prediction_id})
             rows = result.fetchall()
             return [dict(row) for row in rows]
         except Exception as e:

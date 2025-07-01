@@ -1,0 +1,15 @@
+{
+  "f1": false,
+  "r2": false,
+  "mae": false,
+  "mse": false,
+  "recall": false,
+  "roc_auc": false,
+  "accuracy": 0.3,
+  "log_loss": false,
+  "precision": false,
+  "confusion_matrix": false,
+  "explained_variance": false,
+  "classification_report": false,
+  "median_absolute_error": false
+}

@@ -1,7 +1,7 @@
 <template>
-  <div class="experiments-container">
+  <div class="projects-container">
     <div class="header-section">
-      <h1>实验管理</h1>
+      <h1>项目管理</h1>
       <div class="header-actions">
         <button @click="refreshData" class="refresh-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -14,53 +14,52 @@
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          新建实验
+          新建项目
         </button>
       </div>
     </div>
 
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
-      <p>加载实验中...</p>
+      <p>加载项目中...</p>
     </div>
 
-    <div v-else-if="experiments.length === 0" class="empty-state">
+    <div v-else-if="projects.length === 0" class="empty-state">
       <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+        <polyline points="10 9 9 9 8 9"></polyline>
       </svg>
-      <h3>暂无实验</h3>
-      <p>点击上方按钮创建您的第一个实验</p>
+      <h3>暂无项目</h3>
+      <p>点击上方按钮创建您的第一个项目</p>
     </div>
 
-    <div v-else class="experiments-grid">
-      <div v-for="experiment in experiments" :key="experiment.experiment_id" class="experiment-card">
-        <router-link :to="`/experiments/${experiment.name}`" class="experiment-link" @click="storeExperimentId(experiment.experiment_id)"
-> >
-          <div class="experiment-icon">
+    <div v-else class="projects-grid">
+      <div v-for="project in projects" :key="project.name" class="project-card">
+        <router-link :to="`/projects/${project.name}`" class="project-link" @click.native="() => setProjectId(project.project_id)">
+          <div class="project-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
             </svg>
           </div>
-          <h3 class="experiment-name">{{ experiment.name }}</h3>
-          <div class="experiment-meta">
-            <span class="meta-item">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
-              预测次数: {{ experiment.prediction_count }}
-            </span>
-          </div>
+          <h3 class="project-name">{{ project.name }}（id: {{ project.project_id }}）</h3>
+          <h3 class="project-name">
+            <span class="experiment-count">{{ project.experiment_count }} 个实验</span>
+          </h3>
           <div class="project-meta">
             <span class="meta-item">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
               </svg>
-              创建于: {{ formatDate(experiment.created_at) }}
+              创建于: {{ formatDate(project.created_at) }}
             </span>
           </div>
         </router-link>
-        <button @click.stop="confirmDelete(experiment.experiment_id)" class="delete-btn">
+        <button @click.stop="confirmDelete(project.project_id)" class="delete-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -71,11 +70,11 @@
       </div>
     </div>
 
-    <!-- 创建实验对话框 -->
+    <!-- 创建项目对话框 -->
     <div v-if="showCreateDialog" class="modal-overlay">
       <div class="modal-content">
         <div class="modal-header">
-          <h3>创建新实验</h3>
+          <h3>创建新项目</h3>
           <button @click="showCreateDialog = false" class="close-btn">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -85,19 +84,19 @@
         </div>
         <div class="modal-body">
           <div class="input-group">
-            <label for="experiment-name">实验名称</label>
+            <label for="project-name">项目名称</label>
             <input
-              id="experiment-name"
-              v-model="newExperimentName"
+              id="project-name"
+              v-model="newProjectName"
               type="text"
-              placeholder="输入实验名称"
-              @keyup.enter="createExperiment"
+              placeholder="输入项目名称"
+              @keyup.enter="createProject"
             />
           </div>
         </div>
         <div class="modal-footer">
           <button @click="showCreateDialog = false" class="cancel-btn">取消</button>
-          <button @click="createExperiment" class="confirm-btn" :disabled="!newExperimentName">创建</button>
+          <button @click="createProject" class="confirm-btn" :disabled="!newProjectName">创建</button>
         </div>
       </div>
     </div>
@@ -107,82 +106,67 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import {useRoute} from "vue-router";
-const route = useRoute()
-const projectName = route.params.name;
-localStorage.setItem('projectName', projectName);
-const projectId = localStorage.getItem('project_id')
-const userId = localStorage.getItem('user_id')
-const experiments = ref([])
+
+const projects = ref([])
 const loading = ref(true)
 const showCreateDialog = ref(false)
-const newExperimentName = ref('')
+const newProjectName = ref('')
+const userId = localStorage.getItem('user_id')
 
-const storeExperimentId = (id) => {
-  localStorage.setItem('experiment_id', id)
+const refreshData = async () => {
+  await fetchProjects()
+}
+const setProjectId = (id) => {
+  localStorage.setItem('project_id', id)
 }
 
-// 获取所有实验
-const fetchExperiments = async () => {
+// 获取所有项目
+const fetchProjects = async () => {
   try {
     loading.value = true
-    const response = await axios.post(
-      `http://localhost:8000/api/projects/${projectName}/get_experiments`,
-      { name: projectName, user_id: userId }
-    )
-    experiments.value = response.data
+    const userId = localStorage.getItem('user_id')
+    const response = await axios.post('http://localhost:8000/api/projects',{user_id: userId})
+    projects.value = response.data
   } catch (error) {
-    console.error('获取实验列表失败:', error)
+    console.error('获取项目列表失败:', error)
   } finally {
     loading.value = false
   }
 }
 
-// 刷新数据
-const refreshData = async () => {
-  await fetchExperiments()
-}
-
-const createExperiment = async () => {
-  if (!newExperimentName.value.trim()) return
+const createProject = async () => {
+  if (!newProjectName.value.trim()) return
 
   try {
-    await axios.post(
-      `http://localhost:8000/api/projects/${projectName}/experiments`,
-      {
-        project_id : projectId,
-        user_id: userId,
-        name: newExperimentName.value.trim()
-      }
-    )
-    await fetchExperiments()
+    await axios.post('http://localhost:8000/api/create_project', {
+      name: newProjectName.value.trim() ,user_id : userId
+    })
+    await fetchProjects()
     showCreateDialog.value = false
-    newExperimentName.value = ''
+    newProjectName.value = ''
   } catch (error) {
     if (error.response && error.response.status === 400) {
-      alert('实验名称已存在')
     } else {
-      console.error('创建实验失败:', error)
+      console.error('创建项目失败:', error)
     }
   }
 }
 
-// 删除实验
-const confirmDelete = (experimentId) => {
-  if (confirm('确定要删除此实验吗？此操作不可撤销。')) {
-    deleteExperiment(experimentId)
+// 删除项目
+const confirmDelete = (projectID) => {
+  if (confirm(`确定要删除项目吗？此操作不可撤销。`)) {
+    deleteProject(projectID)
   }
 }
 
-const deleteExperiment = async (experimentId) => {
+const deleteProject = async (projectID) => {
   try {
-    await axios.delete(
-      `http://localhost:8000/api/projects/${projectName}/experiments`,
-      { data: { experiment_id: experimentId } }
-    )
-    await fetchExperiments()
+    await axios.delete('http://localhost:8000/api/delete_project', {
+      data: { project_id: projectID }  // 注意这里要用 data 字段
+    })
+    await fetchProjects()
   } catch (error) {
-    console.error('删除实验失败:', error)
+    console.error('删除项目失败:', error)
   }
 }
 
@@ -192,28 +176,33 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, options)
 }
 
-onMounted(() => {
-  fetchExperiments()
-})
+// 初始化加载数据
+onMounted(fetchProjects)
 </script>
 
 <style scoped>
-.experiments-container {
+.projects-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
 
 .header-section {
+  width: 40vw; /* 或 100% */
+  padding: 0 2rem;
+  box-sizing: border-box;
+  height: 4.5rem;
   display: flex;
   justify-content: space-between;
+  grid-template-columns: auto 1fr;
   align-items: center;
+  column-gap: 1rem;
   margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
 }
 
+
 .header-section h1 {
+  flex-shrink: 0;     /* 防止标题被压缩 */
   margin: 0;
   font-size: 1.75rem;
   font-weight: 600;
@@ -222,25 +211,28 @@ onMounted(() => {
 
 .header-actions {
   display: flex;
-  gap: 1rem;
-}
+  gap: 2rem; /* 按钮之间的间距 */
+  align-items: center;
 
+}
 .refresh-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.25rem; /* 与 .create-btn 一致 */
   background-color: #edf2f7;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px; /* 匹配 .create-btn */
   color: #4a5568;
   font-size: 0.95rem;
+  font-weight: 500; /* 可选：增强一致性 */
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .refresh-btn:hover {
   background-color: #e2e8f0;
+  transform: translateY(-1px); /* 与 .create-btn:hover 一致 */
 }
 
 .create-btn {
@@ -306,14 +298,14 @@ onMounted(() => {
   font-size: 0.95rem;
 }
 
-.experiments-grid {
+.projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
   margin-top: 1rem;
 }
 
-.experiment-card {
+.project-card {
   position: relative;
   background-color: white;
   border-radius: 12px;
@@ -322,25 +314,25 @@ onMounted(() => {
   transition: all 0.2s ease;
 }
 
-.experiment-card:hover {
+.project-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-.experiment-link {
+.project-link {
   text-decoration: none;
   color: inherit;
   display: block;
 }
 
-.experiment-icon {
+.project-icon {
   display: flex;
   justify-content: center;
   margin-bottom: 1rem;
   color: #4361ee;
 }
 
-.experiment-name {
+.project-name {
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
@@ -348,7 +340,7 @@ onMounted(() => {
   text-align: center;
 }
 
-.experiment-meta {
+.project-meta {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -380,7 +372,7 @@ onMounted(() => {
   opacity: 0;
 }
 
-.experiment-card:hover .delete-btn {
+.project-card:hover .delete-btn {
   opacity: 1;
 }
 
@@ -514,24 +506,5 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
-@media (max-width: 768px) {
-  .experiments-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  }
 
-  .header-section {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .header-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
-
-  .modal-content {
-    width: 90%;
-  }
-}
 </style>

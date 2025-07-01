@@ -1,5 +1,5 @@
-cd C:\Data\Python\Projects\daily\Big_homework\Big_Homework\二阶段\backend
+cd C:\Data\Python\Projects\daily\Big_homework\backend
 uvicorn main:app --reload
-cd C:\Data\Python\Projects\daily\Big_homework\Big_Homework\二阶段\frontend\App
+cd C:\Data\Python\Projects\daily\Big_homework\frontend\App
 npm run dev
 mysql -u root -p -h 127.0.0.1 -P 3306
