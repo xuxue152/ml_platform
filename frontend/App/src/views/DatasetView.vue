@@ -122,7 +122,8 @@ const reloadOps = new Set([
   'drop_low_variance',
   'target_encoding',
   'pca',
-  'one_hot'
+  'one_hot',
+  'transpose'
 ])
 const featureOperations = {
   drop: '删除特征',
@@ -141,6 +142,7 @@ const featureOperations = {
   interaction_terms: '交互特征',
   polynomial_features: '转为平方',
   target_encoding: '目标编码',
+  transpose : '交换位置'
 }
 
 const toggleSelectAll = () => {

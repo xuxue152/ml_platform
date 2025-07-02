@@ -136,6 +136,7 @@ class FeatureProcessor:
             'drop_high_missing': self.drop_high_missing,
             'drop_low_variance': self.drop_low_variance,
             'target_encoding': self.target_encode,
+            'transpose': self.transpose,
         }
 
     def apply_pipeline(self, pipeline: List[Dict]):
@@ -297,6 +298,36 @@ class FeatureProcessor:
             raise HTTPException(status_code=500,detail="交互特征构造只能传入两个列名")
         col1, col2 = cols
         self.df[f"{col1}_x_{col2}"] = self.df[col1] * self.df[col2]
+
+    def transpose(self, cols: List[str]):
+        """
+        在 DataFrame 中交换两个列的位置。
+        例如：将 'col1' 和 'col2' 的列顺序互换。
+        """
+        if len(cols) != 2:
+            raise HTTPException(status_code=500, detail="列交换只能传入两个列名")
+
+        col1, col2 = cols
+
+        # 校验列是否存在
+        for col in [col1, col2]:
+            if col not in self.df.columns:
+                raise HTTPException(status_code=400, detail=f"列 {col} 不存在于数据中")
+
+        # 获取当前列顺序
+        cols_list = list(self.df.columns)
+
+        # 获取索引
+        idx1, idx2 = cols_list.index(col1), cols_list.index(col2)
+
+        # 交换位置
+        cols_list[idx1], cols_list[idx2] = cols_list[idx2], cols_list[idx1]
+
+        # 重新排列列
+        self.df = self.df[cols_list]
+
+        print(f"已交换列顺序: {col1} <--> {col2}")
+
 
     def create_polynomial_features(self, cols: Union[str, List[str]], degree: int = 2):
         if isinstance(cols, str):
